@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrueCert - Fake Certificate Checker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:#0f172a;color:white;min-height:100vh;padding:18px}
+.box{max-width:500px;margin:0 auto;text-align:center}
+.logo{font-size:44px;font-weight:900;margin-top:10px}.logo span{color:#22c55e}
+.sub{color:#94a3b8;margin:8px 0 20px;font-size:14px}
+.card{background:#1e293b;border-radius:20px;padding:20px;margin-bottom:14px;text-align:left}
+.card h3{margin-bottom:12px;font-size:16px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;padding:12px;border:2px solid #334155;background:#0f172a;color:white;border-radius:12px;cursor:pointer;font-weight:600}
+.btn.active{background:#22c55e;border-color:#22c55e;color:#000}
+select,input[type=text]{width:100%;padding:12px;border-radius:10px;border:none;margin-top:10px;background:#0f172a;color:white;font-size:14px}
+.upload{border:2px dashed #475569;border-radius:16px;padding:25px 10px;text-align:center;cursor:pointer;background:#0f172a;display:block}
+.upload p{font-size:14px;color:#cbd5e1;margin-top:8px}
+input[type=file]{display:none}
+.check{width:100%;padding:14px;background:#22c55e;border:none;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;margin-top:14px;color:#000}
+.result{display:none;margin-top:16px;padding:20px;border-radius:16px;text-align:left}
+.result.fake{background:#450a0a;border:2px solid #ef4444}
+.result.real{background:#052e16;border:2px solid #22c55e}
+.result h2{font-size:22px}
+.result p{font-size:14px;line-height:1.6;margin-top:8px;color:#e2e8f0}
+.reportBtn{width:100%;padding:13px;background:#ef4444;border:none;border-radius:10px;color:white;font-weight:800;margin-top:14px;cursor:pointer;font-size:15px}
+.reportForm{display:none;background:#0f172a;padding:14px;border-radius:12px;margin-top:12px}
+.small{font-size:12px;color:#94a3b8;margin-top:12px;text-align:center}
+.adminBtn{margin-top:14px;background:#334155;color:white;border:none;padding:10px 16px;border-radius:20px;cursor:pointer}
+.adminBox{display:none;background:#1e293b;border-radius:16px;padding:16px;margin-top:14px;text-align:left;font-size:14px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="box">
+<div class="logo">True<span>Cert</span> ✅</div>
+<p class="sub" id="subText">கடினமாகப் பெற்ற சான்றிதழைப் போலியாவதிலிருந்து காப்போம்!</p>
+<div class="card"><h3>1. 🌐 மொழியைத் தேர்ந்தெடுக்கவும்</h3>
+<div class="btns">
+<button class="btn lang active" onclick="setLang('ta',this)">தமிழ்</button>
+<button class="btn lang" onclick="setLang('en',this)">English</button>
+<button class="btn lang" onclick="setLang('hi',this)">हिन्दी</button>
+</div></div>
+<div class="card"><h3 id="t2">2. எதைச் சரிபார்க்கப் போகிறீர்கள்?</h3>
+<div class="btns">
+<button class="btn type active" onclick="setType('course',this)">🎓 இணையவழிப் பாடம்</button>
+<button class="btn type" onclick="setType('job',this)">💼 வேலை ஆவணங்கள்</button>
+</div>
+<p class="small" id="typeDesc" style="text-align:left">Coursera, NPTEL, Google, Udemy</p>
+<select id="issuerSelect" onchange="changeIssuer()">
+<option value="Google">சான்றிதழ் வழங்கியவர்: Google</option>
+<option value="Coursera">சான்றிதழ் வழங்கியவர்: Coursera</option>
+<option value="NPTEL">சான்றிதழ் வழங்கியவர்: NPTEL</option>
+<option value="Udemy">சான்றிதழ் வழங்கியவர்: Udemy</option>
+<option value="Anna University">சான்றிதழ் வழங்கியவர்: Anna University</option>
+<option value="Infosys">சான்றிதழ் வழங்கியவர்: Infosys (அனுபவம்)</option>
+</select>
+</div>
+<div class="card"><h3 id="t3">3. சான்றிதழ் புகைப்படத்தைப் பதிவேற்றவும்</h3>
+<label class="upload"><div style="font-size:38px">📸</div>
+<p id="upText">சொடுக்கிப் புகைப்படம் / திரைப்படத்தைத் தேர்ந்தெடுக்கவும்</p>
+<input type="file" accept="image/*" onchange="showFile(this)"></label>
+<p class="small" id="fileName"></p>
+<button class="check" onclick="checkNow()" id="checkBtn">சரிபார்க்கவும் 🔍</button></div>
+<div id="resultBox" class="result">
+<h2 id="resTitle"></h2><p id="resDesc"></p>
+<div id="reportSection" style="display:none">
+<button class="reportBtn" onclick="showReport()" id="reportBtnText">🚨 இதைப் புகாரளிக்கவும் - நிறுவனத்திற்கு அனுப்பவும்</button>
+<div id="reportForm" class="reportForm">
+<p>எது போலி? தேர்ந்தெடுக்கவும்:</p>
+<label><input type="checkbox" checked> முத்திரை / சின்னம் போலி</label><br>
+<label><input type="checkbox" checked> சான்றிதழ் எண் இல்லை</label><br>
+<label><input type="checkbox"> கையொப்பம் பொருந்தவில்லை</label><br>
+<label><input type="checkbox"> பணம் கேட்டார்கள் / மோசடி</label><br>
+<input type="text" id="reporterName" placeholder="உங்கள் பெயர் (விருப்பம்)">
+<button onclick="submitReport()" style="width:100%;padding:12px;background:#22c55e;border:none;border-radius:10px;font-weight:800;margin-top:10px;cursor:pointer">புகாரை நிறுவனத்திற்கு அனுப்பவும் ✅</button>
+</div>
+<div id="reportSuccess" style="display:none;margin-top:12px;background:#052e16;border:1px solid #22c55e;padding:14px;border-radius:12px">
+<b>✅ புகார் அனுப்பப்பட்டது - டெமோ முறை</b><br>
+<span id="sentToText"></span><br>
+புகார் எண்: <b>TC-1024</b><br>
+<span style="font-size:12px;color:#94a3b8">உண்மையான இணையதளத்தில் இது நேரடியாக நிறுவனத்திற்கு மின்னஞ்சலாகச் செல்லும். டெமோவில் நிர்வாகி உள்பெட்டியில் சேமிக்கப்படுகிறது.</span>
+</div>
+</div>
+</div>
+<button class="adminBtn" onclick="toggleAdmin()">📥 நிர்வாகி உள்பெட்டியைப் பார்க்கவும் (புகார் நகல்)</button>
+<div id="adminBox" class="adminBox">
+<b>📥 நிர்வாகி உள்பெட்டி - புகார் நகல்</b><br><br>
+<span id="adminContent">இன்னும் புகார் இல்லை. போலிச் சான்றிதழைப் புகாரளித்தால் இங்கே வரும்.</span>
+</div>
+<p class="small">TrueCert | Hackathon Project | உண்மையைக் கண்டறியுங்கள்!</p>
+</div>
+<script>
+let lang='ta', type='course', hasFile=false, issuer='Google', checkCount=0;
+const texts={
+ta:{sub:"கடினமாகப் பெற்ற சான்றிதழைப் போலியாவதிலிருந்து காப்போம்!",t2:"2. எதைச் சரிபார்க்கப் போகிறீர்கள்?",t3:"3. சான்றிதழ் புகைப்படத்தைப் பதிவேற்றவும்",up:"சொடுக்கிப் புகைப்படம் / திரைப்படத்தைத் தேர்ந்தெடுக்கவும்",check:"சரிபார்க்கவும் 🔍",course:"Coursera, NPTEL, Google, Udemy",job:"பட்டம், மதிப்பெண் பட்டியல், அனுபவச் சான்றிதழ்",langTitle:"1. 🌐 மொழியைத் தேர்ந்தெடுக்கவும்",courseBtn:"🎓 இணையவழிப் பாடம்",jobBtn:"💼 வேலை ஆவணங்கள்",issuerLabel:"சான்றிதழ் வழங்கியவர்: ",expLabel:" (அனுபவம்)",otherCollege:"பிற கல்லூரி",reportTitle:"எது போலி? தேர்ந்தெடுக்கவும்:",opt1:" முத்திரை / சின்னம் போலி",opt2:" சான்றிதழ் எண் இல்லை",opt3:" கையொப்பம் பொருந்தவில்லை",opt4:" பணம் கேட்டார்கள் / மோசடி",namePh:"உங்கள் பெயர் (விருப்பம்)",submitReport:"புகாரை நிறுவனத்திற்கு அனுப்பவும் ✅",reportBtn:"🚨 இதைப் புகாரளிக்கவும் - ",reportBtnSuffix:" க்கு அனுப்பவும்",reportSent:"✅ புகார் அனுப்பப்பட்டது - டெமோ முறை",reportNote:"உண்மையான இணையதளத்தில் இது நேரடியாக நிறுவனத்திற்கு மின்னஞ்சலாகச் செல்லும். டெமோவில் நிர்வாகி உள்பெட்டியில் சேமிக்கப்படுகிறது.",adminBtn:"📥 நிர்வாகி உள்பெட்டியைப் பார்க்கவும் (புகார் நகல்)",adminTitle:"📥 நிர்வாகி உள்பெட்டி - புகார் நகல்",footer:"TrueCert | Hackathon Project | உண்மையைக் கண்டறியுங்கள்!",alertUpload:"முதலில் புகைப்படத்தைப் பதிவேற்றவும்!",selected:"தேர்ந்தெடுக்கப்பட்டது: ",fakeTitle:"⚠️ போலிச் சான்றிதழ்!",realTitle:"✅ உண்மையான சான்றிதழ்!",fakeDesc:"<b>வழங்கியவர்:</b> ",fakeReason:"<br><b>காரணம்:</b><br>• சின்னம் உண்மையானது போல் இல்லை<br>• எழுத்துரு / கையொப்பம் பொருந்தவில்லை<br>• சான்றிதழ் எண் தரவுத்தளத்தில் இல்லை<br><br>இதை நம்ப வேண்டாம். கீழே புகாரளிக்கவும்.",realDesc:"<br><b>சரிபார்க்கப்பட்டது:</b><br>• சின்னம் & முத்திரை சரி<br>• கையொப்பம் பொருந்திவிட்டது<br>• சான்றிதழ் எண் சரியானது<br><br>இவர் கடினமாகப் பெற்ற சான்றிதழ். உண்மையானது!",to:"பெறுநர்: ",from:"அனுப்பியவர்: ",via:" TrueCert வழியாக",statusSent:"நிலை: அனுப்பப்பட்டது (டெமோ)",newReport:"புதிய புகார்! எண்: TC-1024",repIssuer:"வழங்கியவர்: ",repType:"வகை: ",repCourse:"இணையவழிப் பாடம்",repJob:"வேலை ஆவணம்",repReporter:"புகாரளித்தவர்: ",repReason:"காரணம்: சின்னம் போலி, எண் கிடைக்கவில்லை",repStatus:"நிலை: ",repForwarded:" க்கு அனுப்பப்பட்டது (டெமோ நகல்)",anon:"பெயர் தெரிவிக்கப்படவில்லை",alertSent:"புகார் அனுப்பப்பட்டது! (டெமோ)"},
+en:{sub:"Stop fake certificates. Protect real hard work!",t2:"2. What do you want to check?",t3:"3. Upload Certificate Photo",up:"Click to choose Photo / Screenshot",check:"CHECK NOW 🔍",course:"Coursera, NPTEL, Google, Udemy",job:"Degree, Marksheet, Experience Letter",langTitle:"1. 🌐 Choose Language",courseBtn:"🎓 Online Course",jobBtn:"💼 Job Documents",issuerLabel:"Certificate Issuer: ",expLabel:" (Experience)",otherCollege:"Other College",reportTitle:"What is fake? Select:",opt1:" Logo / Seal is Fake",opt2:" Certificate ID Missing",opt3:" Signature Mismatch",opt4:" Asked for Money / Scam",namePh:"Your Name (Optional)",submitReport:"SUBMIT REPORT TO COMPANY ✅",reportBtn:"🚨 REPORT THIS - SEND TO ",reportBtnSuffix:"",reportSent:"✅ REPORT SENT - DEMO MODE",reportNote:"On the real website, this will go directly to the company by email. In demo, it is saved in Admin Inbox.",adminBtn:"📥 View Admin Inbox (Report Copy)",adminTitle:"📥 ADMIN INBOX - Report Copy",footer:"TrueCert | Hackathon Project | Find the Truth!",alertUpload:"Please upload a photo first!",selected:"Selected: ",fakeTitle:"⚠️ FAKE CERTIFICATE!",realTitle:"✅ REAL CERTIFICATE!",fakeDesc:"<b>Issuer:</b> ",fakeReason:"<br><b>Reason:</b><br>• Logo does not look original<br>• Font / Signature mismatch<br>• Certificate ID not found in database<br><br>Do not trust this. Please report below.",realDesc:"<br><b>Verified:</b><br>• Logo & Seal are correct<br>• Signature matched<br>• Certificate ID is valid<br><br>This certificate was earned with hard work. It is real!",to:"To: ",from:"From: ",via:" via TrueCert",statusSent:"Status: Sent (Demo)",newReport:"New Report! ID: TC-1024",repIssuer:"Issuer: ",repType:"Type: ",repCourse:"Online Course",repJob:"Job Document",repReporter:"Reporter: ",repReason:"Reason: Logo Fake, ID Not Found",repStatus:"Status: Forwarded to ",repForwarded:" (Demo Copy)",anon:"Anonymous",alertSent:"Report sent! (Demo)"},
+hi:{sub:"नकली प्रमाणपत्र को रोकें। मेहनत को बचाएं!",t2:"2. आप क्या जांचना चाहते हैं?",t3:"3. प्रमाणपत्र की फोटो अपलोड करें",up:"फोटो / स्क्रीनशॉट चुनने के लिए क्लिक करें",check:"अभी जांचें 🔍",course:"Coursera, NPTEL, Google, Udemy",job:"डिग्री, मार्कशीट, अनुभव प्रमाणपत्र",langTitle:"1. 🌐 भाषा चुनें",courseBtn:"🎓 ऑनलाइन कोर्स",jobBtn:"💼 नौकरी दस्तावेज़",issuerLabel:"प्रमाणपत्र जारीकर्ता: ",expLabel:" (अनुभव)",otherCollege:"अन्य कॉलेज",reportTitle:"क्या नकली है? चुनें:",opt1:" लोगो / मुहर नकली है",opt2:" प्रमाणपत्र आईडी नहीं है",opt3:" हस्ताक्षर मेल नहीं खाता",opt4:" पैसे मांगे / धोखाधड़ी",namePh:"आपका नाम (वैकल्पिक)",submitReport:"रिपोर्ट कंपनी को भेजें ✅",reportBtn:"🚨 इसकी रिपोर्ट करें - ",reportBtnSuffix:" को भेजें",reportSent:"✅ रिपोर्ट भेजी गई - डेमो मोड",reportNote:"असली वेबसाइट पर यह सीधे कंपनी को ईमेल से जाएगी। डेमो में यह एडमिन इनबॉक्स में सहेजी जाती है।",adminBtn:"📥 एडमिन इनबॉक्स देखें (रिपोर्ट कॉपी)",adminTitle:"📥 एडमिन इनबॉक्स - रिपोर्ट कॉपी",footer:"TrueCert | Hackathon Project | सत्य को खोजें!",alertUpload:"पहले फोटो अपलोड करें!",selected:"चुना गया: ",fakeTitle:"⚠️ नकली प्रमाणपत्र!",realTitle:"✅ असली प्रमाणपत्र!",fakeDesc:"<b>जारीकर्ता:</b> ",fakeReason:"<br><b>कारण:</b><br>• लोगो असली जैसा नहीं लगता<br>• फ़ॉन्ट / हस्ताक्षर मेल नहीं खाता<br>• प्रमाणपत्र आईडी डेटाबेस में नहीं मिली<br><br>इस पर भरोसा न करें। नीचे रिपोर्ट करें।",realDesc:"<br><b>सत्यापित:</b><br>• लोगो और मुहर सही हैं<br>• हस्ताक्षर मिल गया<br>• प्रमाणपत्र आईडी सही है<br><br>यह प्रमाणपत्र मेहनत से पाया गया है। यह असली है!",to:"प्रति: ",from:"प्रेषक: ",via:" TrueCert के माध्यम से",statusSent:"स्थिति: भेजी गई (डेमो)",newReport:"नई रिपोर्ट! आईडी: TC-1024",repIssuer:"जारीकर्ता: ",repType:"प्रकार: ",repCourse:"ऑनलाइन कोर्स",repJob:"नौकरी दस्तावेज़",repReporter:"रिपोर्टकर्ता: ",repReason:"कारण: लोगो नकली, आईडी नहीं मिली",repStatus:"स्थिति: ",repForwarded:" को भेजा गया (डेमो कॉपी)",anon:"गुमनाम",alertSent:"रिपोर्ट भेजी गई! (डेमो)"}
+};
+function setLang(l,el){lang=l;document.querySelectorAll('.lang').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('subText').innerText=texts[l].sub;document.getElementById('t2').innerText=texts[l].t2;document.getElementById('t3').innerText=texts[l].t3;document.getElementById('upText').innerText=texts[l].up;document.getElementById('checkBtn').innerText=texts[l].check;document.getElementById('typeDesc').innerText=type==='course'?texts[l].course:texts[l].job;document.querySelectorAll('.type')[0].innerText=texts[l].courseBtn;document.querySelectorAll('.type')[1].innerText=texts[l].jobBtn;document.querySelector('.card h3').innerText=texts[l].langTitle;document.getElementById('reporterName').placeholder=texts[l].namePh;document.querySelector('#reportForm p').innerText=texts[l].reportTitle;document.querySelectorAll('#reportForm label')[0].innerHTML='<input type="checkbox" checked>'+texts[l].opt1;document.querySelectorAll('#reportForm label')[1].innerHTML='<input type="checkbox" checked>'+texts[l].opt2;document.querySelectorAll('#reportForm label')[2].innerHTML='<input type="checkbox">'+texts[l].opt3;document.querySelectorAll('#reportForm label')[3].innerHTML='<input type="checkbox">'+texts[l].opt4;document.querySelector('#reportForm button').innerText=texts[l].submitReport;document.querySelector('#reportSuccess b').innerText=texts[l].reportSent;document.querySelector('#reportSuccess span:last-child').innerText=texts[l].reportNote;document.querySelector('.adminBtn').innerText=texts[l].adminBtn;document.querySelector('#adminBox b').innerText=texts[l].adminTitle;document.querySelector('.small:last-child').innerText=texts[l].footer;setType(type, document.querySelectorAll('.type')[type==='course'?0:1]);}
+function setType(t,el){type=t;document.querySelectorAll('.type').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('typeDesc').innerText=t==='course'?texts[lang].course:texts[lang].job;if(t==='job'){document.getElementById('issuerSelect').innerHTML='<option value="Anna University">'+texts[lang].issuerLabel+'Anna University</option><option value="Infosys">'+texts[lang].issuerLabel+'Infosys'+texts[lang].expLabel+'</option><option value="TCS">'+texts[lang].issuerLabel+'TCS'+texts[lang].expLabel+'</option><option value="Other College">'+texts[lang].issuerLabel+texts[lang].otherCollege+'</option>';} else {document.getElementById('issuerSelect').innerHTML='<option value="Google">'+texts[lang].issuerLabel+'Google</option><option value="Coursera">'+texts[lang].issuerLabel+'Coursera</option><option value="NPTEL">'+texts[lang].issuerLabel+'NPTEL</option><option value="Udemy">'+texts[lang].issuerLabel+'Udemy</option>';}changeIssuer();}
+function changeIssuer(){issuer=document.getElementById('issuerSelect').value;document.getElementById('reportBtnText').innerText=texts[lang].reportBtn+issuer.toUpperCase()+texts[lang].reportBtnSuffix;}
+function showFile(inp){if(inp.files[0]){hasFile=true;document.getElementById('fileName').innerText=texts[lang].selected+inp.files[0].name;}}
+function checkNow(){
+if(!hasFile){alert(texts[lang].alertUpload);return;}
+let box=document.getElementById('resultBox');box.style.display='block';
+let fname = document.querySelector('input[type=file]').files[0].name.toLowerCase();
+let isFake;
+if(fname.includes('fake')){ isFake=true; }
+else if(fname.includes('real')){ isFake=false; }
+else { checkCount++; isFake = (checkCount % 2 === 0); }
+document.getElementById('reportSection').style.display=isFake?'block':'none';
+document.getElementById('reportForm').style.display='none';
+document.getElementById('reportSuccess').style.display='none';
+if(isFake){box.className='result fake';document.getElementById('resTitle').innerText=texts[lang].fakeTitle;document.getElementById('resDesc').innerHTML=texts[lang].fakeDesc+issuer+texts[lang].fakeReason;}
+else{box.className='result real';document.getElementById('resTitle').innerText=texts[lang].realTitle;document.getElementById('resDesc').innerHTML=texts[lang].fakeDesc+issuer+texts[lang].realDesc;}
+box.scrollIntoView({behavior:'smooth'});
+}
+function showReport(){document.getElementById('reportForm').style.display='block';}
+function submitReport(){
+let name=document.getElementById('reporterName').value||texts[lang].anon;
+document.getElementById('reportForm').style.display='none';
+document.getElementById('reportSuccess').style.display='block';
+document.getElementById('sentToText').innerHTML=texts[lang].to+"<b>verify@"+issuer.toLowerCase().replace(/ /g,'')+".com ("+issuer+" Team)</b><br>"+texts[lang].from+name+texts[lang].via+"<br>"+texts[lang].statusSent;
+document.getElementById('adminContent').innerHTML="<b>"+texts[lang].newReport+"</b><br>"+texts[lang].repIssuer+issuer+"<br>"+texts[lang].repType+(type==='course'?texts[lang].repCourse:texts[lang].repJob)+"<br>"+texts[lang].repReporter+name+"<br>"+texts[lang].repReason+"<br>"+texts[lang].repStatus+issuer+texts[lang].repForwarded;
+alert(texts[lang].alertSent+" "+issuer+"!");
+}
+function toggleAdmin(){let b=document.getElementById('adminBox');b.style.display=b.style.display==='block'?'none':'block';}
+changeIssuer();
+</script>
+</body>
+</html>
